@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkpoints</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ground:#F4F6F8; --surface:#FFFFFF; --ink:#16202E; --body:#2C3644; --muted:#4A5565; --faint:#5B6676;
+    --line:#DDE3EA; --line-strong:#C5CED9;
+    --label:#2A3A55;
+    /* grade colour: set per grade in GRADE_COLOURS (script below) */
+    --g:#16202E;
+    --g-soft:color-mix(in srgb, var(--g) 16%, #fff);
+    --g-soft-hover:color-mix(in srgb, var(--g) 26%, #fff);
+    --gold:#FFC23D; --gold-soft:#FFF6DC; --gold-ink:#6B4A00; --gold-deep:#3B2A00;
+    --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+    --text:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--text);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:44px 24px 72px;display:flex;flex-direction:column;gap:28px}
+  .eyebrow{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--label)}
+  h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(34px,5vw,48px);line-height:1.05;letter-spacing:-.02em}
+  .intro{display:flex;flex-direction:column;gap:12px;max-width:760px}
+  .intro p.lede{margin:0;font-size:17px;line-height:1.55;color:#3E4958}
+  .filters{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 24px;display:flex;flex-direction:column;gap:18px}
+  .frow{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+  .flabel{width:110px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);font:600 15px/1 var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .pill:hover{border-color:var(--ink)}
+  .pill.soon{color:var(--faint)}
+  .pill.on,.pill.on.soon{background:var(--ink);border-color:var(--ink);color:#fff}
+  .pill:focus-visible,.more:focus-visible,.stop:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--dot);box-shadow:0 0 0 1.5px #fff}
+  .now{font:700 11px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;background:#FFD66B;color:var(--gold-deep);padding:4px 7px;border-radius:999px}
+  .summary{margin:0;font-size:15px;color:var(--muted)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:20px;align-items:start}
+  .card{background:var(--surface);border:1px solid var(--line);border-top-width:7px;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+  .card.open{grid-column:1 / -1}
+  .card{border-top-color:var(--g)}
+  .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .badge{font:700 13px/1 var(--text);padding:6px 10px;border-radius:8px;color:var(--ink);background:var(--g-soft);box-shadow:inset 0 0 0 1.5px var(--g)}
+  .meta .where{font-size:13px;font-weight:600;color:var(--muted)}
+  .card h2{margin:0;font-size:18px;font-weight:700;line-height:1.3}
+  .stmt{margin:0;font-family:var(--display);font-weight:700;font-size:25px;line-height:1.22;letter-spacing:-.01em;color:var(--ink)}
+  .stmt.long{font-size:20px;line-height:1.3}
+  .cond{margin:0;font-size:15px;line-height:1.5;color:#3E4958}
+  .cond b{color:var(--ink)}
+  .more{align-self:flex-start;min-height:44px;padding:0 16px;border:none;border-radius:10px;background:var(--g-soft);color:var(--ink);font:600 15px/1 var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .more:hover{background:var(--g-soft-hover)}
+  .more svg{transition:transform .2s}
+  .open .more svg{transform:rotate(180deg)}
+  .body{display:flex;flex-direction:column;gap:28px}
+  .detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:28px;padding-top:8px;border-top:1px dashed var(--line-strong)}
+  .col{display:flex;flex-direction:column;gap:16px;padding-top:16px}
+  h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--label)}
+  h4{margin:0;font-size:16px;font-weight:700}
+  .grp{display:flex;flex-direction:column;gap:6px}
+  ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.5;color:var(--body)}
+  .p{margin:0;font-size:15px;line-height:1.5;color:var(--body)}
+  .p b{color:var(--ink)}
+  .words{background:var(--gold-soft);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+  .words h3{color:var(--gold-ink)}
+  .words .lead{margin:0;font-size:15px;line-height:1.5;color:var(--gold-deep)}
+  .words .quote{margin:0;font-family:var(--display);font-weight:500;font-size:19px;line-height:1.4;color:#2A1E00}
+  .sec{display:flex;flex-direction:column;gap:6px}
+  .stops{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  @media (max-width:760px){.stops{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .stop{text-align:left;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;min-height:44px;cursor:pointer;display:flex;flex-direction:column;gap:6px;font:400 14px/1.4 var(--text);color:var(--ink)}
+  .stop:hover{border-color:var(--g)}
+  .stop.on{border-color:var(--g);background:var(--g-soft)}
+  .stop .m{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--label)}
+  .empty{background:var(--surface);border:1.5px dashed var(--line-strong);border-radius:18px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+  .empty .t{margin:0;font-family:var(--display);font-weight:700;font-size:22px}
+  .empty .b{margin:0;font-size:15px;color:var(--muted);max-width:460px;line-height:1.5}
+  .foot{margin:8px 0 0;font-size:13px;color:var(--faint)}
+  @media (max-width:520px){.flabel{width:100%}.wrap{padding:28px 16px 56px}.stmt{font-size:22px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="intro">
+    <p class="eyebrow">ELA progress checkpoints · Grades 6–12</p>
+    <h1>Where are my students heading?</h1>
+    <svg aria-hidden="true" width="220" height="14" viewBox="0 0 220 14" fill="none"><path d="M2 9 C 30 1, 50 13, 80 6 S 130 1, 160 8 S 205 12, 218 4" stroke="#FFC23D" stroke-width="4" stroke-linecap="round"/></svg>
+    <p class="lede">Pick your grade and the time of year. Each card shows what students are working toward at that checkpoint. Open one for look-fors, what it sounds like in students' words, and a way to gather evidence.</p>
+  </div>
+
+  <section class="filters" aria-label="Filters">
+    <div class="frow"><span class="flabel" id="lg">Grade</span><div class="pills" id="grades" role="group" aria-labelledby="lg"></div></div>
+    <div class="frow"><span class="flabel" id="lm">Checkpoint</span><div class="pills" id="months" role="group" aria-labelledby="lm"></div></div>
+    <div class="frow"><span class="flabel" id="ls">Strand</span><div class="pills" id="strands" role="group" aria-labelledby="ls"></div></div>
+  </section>
+
+  <p class="summary" id="summary" aria-live="polite">Loading checkpoints…</p>
+  <div id="results"></div>
+
+  <p class="foot">View only. Checkpoints are maintained by the district ELA coaching team.</p>
+</main>
+
+<script>
+(function () {
+  // ---- Settings you might change -------------------------------------------
+  var DATA_FILE = 'checkpoints.csv';
+  var GRADES = [6, 7, 8, 9, 10, 11, 12];
+  var STRANDS = ['Interactions', 'Reading', 'Representation'];
+  var MONTHS = ['November', 'February', 'April', 'Year-end'];
+  // One colour per grade. Add more as you go, e.g. 7: '#xxxxxx'. Grades without one use navy.
+  var GRADE_COLOURS = { 6: '#818081' };
+  // ---------------------------------------------------------------------------
+
+  var state = { grade: 6, month: nowMonth(), strand: 'All', open: null };
+  var descriptors = [];
+
+  function nowMonth() {
+    var m = new Date().getMonth();
+    if (m >= 8 && m <= 10) return 'November';
+    if (m === 11 || m <= 1) return 'February';
+    if (m >= 2 && m <= 3) return 'April';
+    return 'Year-end';
+  }
+
+  // CSV parser that handles quoted fields, commas and line breaks inside cells
+  function parseCSV(text) {
+    text = text.replace(/^﻿/, '');
+    var rows = [], row = [], field = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        if (row.some(function (c) { return c.trim() !== ''; })) rows.push(row);
+        row = [];
+      } else field += ch;
+    }
+    row.push(field);
+    if (row.some(function (c) { return c.trim() !== ''; })) rows.push(row);
+    var head = rows.shift().map(function (h) { return h.trim(); });
+    return rows.map(function (r) {
+      var o = {}; head.forEach(function (h, k) { o[h] = (r[k] || '').trim(); }); return o;
+    });
+  }
+
+  function lines(s) { return s.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function lookfors(s) {
+    var groups = [], cur = null;
+    lines(s).forEach(function (l) {
+      if (/^#+\s*/.test(l)) { cur = { h: l.replace(/^#+\s*/, ''), items: [] }; groups.push(cur); }
+      else { if (!cur) { cur = { h: '', items: [] }; groups.push(cur); } cur.items.push(l.replace(/^[-•*]\s*/, '')); }
+    });
+    return groups;
+  }
+  function indicators(s) {
+    return lines(s).map(function (l) {
+      var i = l.indexOf(':');
+      return i > 0 ? { h: l.slice(0, i).trim(), t: l.slice(i + 1).trim() } : { h: '', t: l };
+    });
+  }
+  function normMonth(m) {
+    m = (m || '').toLowerCase();
+    if (m.indexOf('nov') === 0) return 'November';
+    if (m.indexOf('feb') === 0) return 'February';
+    if (m.indexOf('apr') === 0) return 'April';
+    return m;
+  }
+
+  function build(rows) {
+    var map = {}, order = [];
+    rows.forEach(function (r) {
+      var key = r['Grade'] + '|' + r['Code'];
+      if (!map[key]) {
+        map[key] = {
+          grade: parseInt(r['Grade'], 10), strand: r['Strand'], code: r['Code'], name: r['Descriptor Name'],
+          descriptor: r['Skill Descriptor'], indicators: indicators(r['Achievement Indicators']),
+          yearEnd: r['Year-End'], cps: {}
+        };
+        order.push(key);
+      }
+      var d = map[key];
+      if (!d.yearEnd && r['Year-End']) d.yearEnd = r['Year-End'];
+      if (!d.indicators.length && r['Achievement Indicators']) d.indicators = indicators(r['Achievement Indicators']);
+      d.cps[normMonth(r['Checkpoint'])] = {
+        statement: r['Student Statement'], conditions: r['Conditions'], lookfors: lookfors(r['Look Fors']),
+        lead: r['Awareness - Description'], quote: r['Awareness - Student Quote'],
+        evidence: r['Evidence Opportunities'], june: r['Left for June']
+      };
+    });
+    return order.map(function (k) { return map[k]; });
+  }
+
+  // ---- tiny DOM helper --------------------------------------------------------
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'class') n.className = attrs[k];
+      else if (k === 'text') n.textContent = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function chevron() {
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('width', '16'); s.setAttribute('height', '16'); s.setAttribute('viewBox', '0 0 16 16');
+    s.setAttribute('fill', 'none'); s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    return s;
+  }
+  function set(patch) { Object.keys(patch).forEach(function (k) { state[k] = patch[k]; }); render(); }
+  function pill(label, on, extraCls, onclick, now, dot) {
+    var d = null;
+    if (dot) { d = el('span', { class: 'dot', 'aria-hidden': 'true' }); d.style.setProperty('--dot', dot); }
+    return el('button', { class: 'pill' + (on ? ' on' : '') + (extraCls || ''), 'aria-pressed': on ? 'true' : 'false', onclick: onclick },
+      [d, label, now ? el('span', { class: 'now', text: 'Now' }) : null]);
+  }
+  function quoted(s) { return s ? '“' + s.replace(/^["“]+|["”]+$/g, '') + '”' : ''; }
+
+  // ---- render -----------------------------------------------------------------
+  function render() {
+    document.documentElement.style.setProperty('--g', GRADE_COLOURS[state.grade] || '#16202E');
+    var have = {}; descriptors.forEach(function (d) { have[d.grade] = true; });
+    var g = document.getElementById('grades'); g.textContent = '';
+    GRADES.forEach(function (n) {
+      g.appendChild(pill(String(n), n === state.grade, have[n] ? '' : ' soon', function () { set({ grade: n, open: null }); }, false, GRADE_COLOURS[n]));
+    });
+    var m = document.getElementById('months'); m.textContent = '';
+    var now = nowMonth();
+    MONTHS.forEach(function (mo) { m.appendChild(pill(mo, mo === state.month, '', function () { set({ month: mo }); }, mo === now)); });
+    var s = document.getElementById('strands'); s.textContent = '';
+    [['All', 'All strands']].concat(STRANDS.map(function (x) { return [x, x]; })).forEach(function (p) {
+      s.appendChild(pill(p[1], p[0] === state.strand, '', function () { set({ strand: p[0], open: null }); }));
+    });
+
+    var isYear = state.month === 'Year-end';
+    var list = descriptors.filter(function (d) {
+      return d.grade === state.grade && (state.strand === 'All' || d.strand === state.strand) && (isYear || d.cps[state.month]);
+    });
+
+    var strandWord = state.strand === 'All' ? 'all strands' : state.strand;
+    var monthWord = isYear ? 'year-end' : state.month;
+    document.getElementById('summary').textContent = 'Grade ' + state.grade + ' · ' + strandWord + ' · ' + monthWord + ' checkpoint' +
+      (list.length ? ' · ' + list.length + ' skill descriptor' + (list.length === 1 ? '' : 's') : '');
+
+    var out = document.getElementById('results'); out.textContent = '';
+    if (!list.length) {
+      var t, b;
+      if (!have[state.grade]) { t = 'Grade ' + state.grade + ' checkpoints are on their way'; b = 'Check back soon. They’ll appear here as soon as they’re ready.'; }
+      else { t = 'Nothing here yet'; b = 'Grade ' + state.grade + ' ' + (state.strand === 'All' ? '' : state.strand + ' ') + 'checkpoints for this time of year haven’t been added yet.'; }
+      var icon = el('div'); icon.innerHTML = '<svg aria-hidden="true" width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M14 44V12h22l6 6v26H14z" stroke="#16202E" stroke-width="2.5" stroke-linejoin="round"/><path d="M20 26h16M20 32h16M20 38h10" stroke="#FFC23D" stroke-width="2.5" stroke-linecap="round"/></svg>';
+      out.appendChild(el('div', { class: 'empty' }, [icon, el('p', { class: 't', text: t }), el('p', { class: 'b', text: b })]));
+      return;
+    }
+
+    var grid = el('div', { class: 'cards' });
+    list.forEach(function (d) {
+      var cp = d.cps[state.month] || {};
+      var isOpen = state.open === d.code + '|' + d.grade;
+      var card = el('article', { class: 'card s-' + d.strand + (isOpen ? ' open' : '') });
+      card.appendChild(el('div', { class: 'meta' }, [
+        el('span', { class: 'badge', text: d.code }),
+        el('span', { class: 'where', text: d.strand + ' · ' + (isYear ? 'By June' : state.month) })
+      ]));
+      card.appendChild(el('h2', { text: d.name }));
+      card.appendChild(el('p', { class: 'stmt' + (isYear ? ' long' : ''), text: isYear ? d.yearEnd : quoted(cp.statement) }));
+      if (!isYear && cp.conditions) card.appendChild(el('p', { class: 'cond' }, [el('b', { text: 'Conditions: ' }), cp.conditions]));
+      var btn = el('button', {
+        class: 'more', 'aria-expanded': isOpen ? 'true' : 'false',
+        onclick: function () { set({ open: isOpen ? null : d.code + '|' + d.grade }); }
+      }, [isOpen ? 'Hide details' : (isYear ? 'Descriptor & indicators' : 'Look-fors & examples'), chevron()]);
+      card.appendChild(btn);
+
+      if (isOpen) {
+        var detail = el('div', { class: 'detail' });
+        if (!isYear) {
+          var left = el('div', { class: 'col' }, [el('h3', { text: 'Look-fors' })]);
+          (cp.lookfors || []).forEach(function (gr) {
+            left.appendChild(el('div', { class: 'grp' }, [
+              gr.h ? el('h4', { text: gr.h }) : null,
+              el('ul', null, gr.items.map(function (it) { return el('li', { text: it }); }))
+            ]));
+          });
+          var right = el('div', { class: 'col' });
+          if (cp.lead || cp.quote) right.appendChild(el('div', { class: 'words' }, [
+            el('h3', { text: 'In their words' }),
+            cp.lead ? el('p', { class: 'lead', text: cp.lead }) : null,
+            cp.quote ? el('p', { class: 'quote', text: quoted(cp.quote) }) : null
+          ]));
+          if (cp.evidence) right.appendChild(el('div', { class: 'sec' }, [el('h3', { text: 'Gather evidence' }), el('p', { class: 'p', text: cp.evidence })]));
+          if (cp.june) right.appendChild(el('div', { class: 'sec' }, [el('h3', { text: 'Still to come by June' }), el('p', { class: 'p', text: cp.june })]));
+          detail.appendChild(left); detail.appendChild(right);
+        } else {
+          detail.appendChild(el('div', { class: 'col' }, [el('h3', { text: 'Skill descriptor' }), el('p', { class: 'p', text: d.descriptor })]));
+          detail.appendChild(el('div', { class: 'col' }, [el('h3', { text: 'Achievement indicators' })].concat(
+            d.indicators.map(function (i) { return el('p', { class: 'p' }, [i.h ? el('b', { text: i.h + ': ' }) : null, i.t]); })
+          )));
+        }
+        var stops = el('div', { class: 'stops' });
+        MONTHS.forEach(function (mo) {
+          var c = d.cps[mo];
+          var text = mo === 'Year-end' ? d.yearEnd : (c ? c.statement : '—');
+          stops.appendChild(el('button', {
+            class: 'stop' + (mo === state.month ? ' on' : ''), 'aria-pressed': mo === state.month ? 'true' : 'false',
+            onclick: function () { set({ month: mo, open: d.code + '|' + d.grade }); }
+          }, [el('span', { class: 'm', text: mo === 'Year-end' ? 'June' : mo }), el('span', { text: text })]));
+        });
+        card.appendChild(el('div', { class: 'body' }, [detail, el('div', { class: 'sec' }, [el('h3', { text: 'The year at a glance' }), stops])]));
+      }
+      grid.appendChild(card);
+    });
+    out.appendChild(grid);
+  }
+
+  fetch(DATA_FILE, { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(function (t) { descriptors = build(parseCSV(t)); render(); })
+    .catch(function () {
+      document.getElementById('summary').textContent = 'Sorry, the checkpoints couldn’t load. Try refreshing the page.';
+    });
+})();
+</script>
+</body>
+</html>

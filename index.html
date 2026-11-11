@@ -69,6 +69,8 @@
   .words .lead{margin:0;font-size:15px;line-height:1.5;color:var(--gold-deep)}
   .words .quote{margin:0;font-family:var(--display);font-weight:500;font-size:19px;line-height:1.4;color:#2A1E00}
   .sec{display:flex;flex-direction:column;gap:6px}
+  .note{display:flex;flex-direction:column;gap:6px;background:#EEF1F6;border-radius:14px;padding:16px 20px}
+  .note>div{display:flex;flex-direction:column;gap:6px}
   .stops{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
   @media (max-width:760px){.stops{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .stop{text-align:left;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;min-height:44px;cursor:pointer;display:flex;flex-direction:column;gap:6px;font:400 14px/1.4 var(--text);color:var(--ink)}
@@ -182,7 +184,7 @@
         map[key] = {
           grade: parseInt(r['Grade'], 10), strand: r['Strand'], code: r['Code'], name: r['Descriptor Name'],
           descriptor: r['Skill Descriptor'], indicators: indicators(r['Achievement Indicators']),
-          yearEnd: r['Year-End'], cps: {}
+          yearEnd: r['Year-End'], note: r['Teacher Note'] || '', cps: {}
         };
         order.push(key);
       }
@@ -305,6 +307,10 @@
             d.indicators.map(function (i) { return el('p', { class: 'p' }, [i.h ? el('b', { text: i.h + ': ' }) : null, i.t]); })
           )));
         }
+        var noteBox = d.note ? el('div', { class: 'note' }, [
+          el('h3', { text: 'Note for teachers' }),
+          el('div', null, lines(d.note).map(function (l) { return el('p', { class: 'p', text: l }); }))
+        ]) : null;
         var stops = el('div', { class: 'stops' });
         MONTHS.forEach(function (mo) {
           var c = d.cps[mo];
@@ -314,7 +320,7 @@
             onclick: function () { set({ month: mo, open: d.code + '|' + d.grade }); }
           }, [el('span', { class: 'm', text: mo === 'Year-end' ? 'June' : mo }), el('span', { text: text })]));
         });
-        card.appendChild(el('div', { class: 'body' }, [detail, el('div', { class: 'sec' }, [el('h3', { text: 'The year at a glance' }), stops])]));
+        card.appendChild(el('div', { class: 'body' }, [detail, noteBox, el('div', { class: 'sec' }, [el('h3', { text: 'The year at a glance' }), stops])]));
       }
       grid.appendChild(card);
     });
